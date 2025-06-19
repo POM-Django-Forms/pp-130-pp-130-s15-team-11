@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+  <h2>Welcome, {{ user.first_name }}! You are logged in as 
+    {% if user.role == 1 %}a librarian{% elif user.role == 2 %}a guest{% else %}a user{% endif %}.
+  </h2>
+
+  <div class="nav-buttons">
+    {% if user.role == 1 %}
+      <a href="{% url 'author_list' %}"><button>Authors</button></a>
+      <a href="{% url 'librarian_book_list' %}"><button>Books</button></a>
+      <a href="{% url 'all_orders' %}"><button>Orders</button></a>
+    {% else %}
+      <a href="{% url 'user_book_list' %}"><button>Books</button></a>
+      <a href="{% url 'my_orders' %}"><button>My Orders</button></a>
+    {% endif %}
+  </div>
+{% endblock %}
