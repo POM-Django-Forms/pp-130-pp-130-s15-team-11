@@ -6,18 +6,26 @@
 <h2>{{ book.name }}</h2>
 
 {% if book.image %}
-    <img src="{{ book.image.url }}" alt="{{ book.name }}" style="max-height: 200px;" />
+    <img src="{{ book.image.url }}" alt="{{ book.name }}"
+         class="img-fluid mb-3" style="max-height: 200px;" />
+{% else %}
+    <p class="text-muted">No cover image available.</p>
 {% endif %}
 
-<p><strong>Description:</strong> {{ book.description }}</p>
-<p><strong>Count:</strong> {{ book.count }}</p>
-<p><strong>Authors:</strong>
-    {% for author in book.authors.all %}
-        {{ author.name }} {{ author.surname }}{% if not forloop.last %}, {% endif %}
-    {% empty %}
-        No authors
-    {% endfor %}
-</p>
+<ul class="list-group mb-3">
+    <li class="list-group-item"><strong>Description:</strong> {{ book.description }}</li>
+    <li class="list-group-item"><strong>Count:</strong> {{ book.count }}</li>
+    <li class="list-group-item">
+        <strong>Authors:</strong>
+        {% if book.authors.all %}
+            {% for author in book.authors.all %}
+                {{ author.name }} {{ author.surname }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        {% else %}
+            <span class="text-muted">No authors</span>
+        {% endif %}
+    </li>
+</ul>
 
-<a href="{% url 'user_book_list' %}">← Back to book list</a>
+<a href="{% url 'user_book_list' %}" class="btn btn-secondary">← Back to Book List</a>
 {% endblock %}

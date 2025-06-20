@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Book
 from author.models import Author
 from order.models import Order
+from .forms import BookForm
 
 def is_librarian(user):
     return user.is_authenticated and user.role == 1
@@ -39,19 +40,13 @@ def book_detail_view(request, book_id):
 def create_book_view(request):
     authors = Author.objects.all()
     if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '').strip()
-        count = request.POST.get('count', '10').strip()
-        selected_authors = request.POST.getlist('authors')
-        image = request.FILES.get('image')
-        count = int(count) if count.isdigit() else 10
-
-        if name and len(name) <= 128:
-            authors_objs = Author.objects.filter(id__in=selected_authors)
-            Book.create(name=name, description=description, count=count, authors=authors_objs, image=image)
+        form = BookForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
             return redirect('librarian_book_list')
-
-    return render(request, 'create_book.html', {'authors': authors})
+    else:
+        form = BookForm()
+    return render(request, 'create_book.html', {'form': form})
 
 @login_required
 @user_passes_test(is_librarian)
@@ -68,18 +63,13 @@ def update_book_view(request, book_id):
     authors = Author.objects.all()
 
     if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '').strip()
-        count = request.POST.get('count', '').strip()
-        selected_authors = request.POST.getlist('authors')
-        count = int(count) if count.isdigit() else book.count
-
-        if name and len(name) <= 128:
-            book.update(name=name, description=description, count=count)
-            book.authors.set(selected_authors)
+        form = BookForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            form.save()
             return redirect('librarian_book_list')
-
-    return render(request, 'update_book.html', {'book': book, 'authors': authors})
+    else:
+        form = BookForm(instance=book)
+    return render(request, 'update_book.html', {'form': form, 'book': book})
 
 @login_required
 @user_passes_test(is_librarian)

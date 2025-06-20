@@ -5,7 +5,10 @@
 {% block content %}
 <h2>Authors</h2>
 
-<a href="{% url 'create_author' %}">➕ Add New Author</a>
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    <a href="{% url 'create_author' %}" class="btn btn-primary">➕ Add New Author</a>
+    <a href="{% url 'profile' request.user.id %}" class="btn btn-primary">👤 My Profile</a>
+</div>
 
 <table>
     <thead>
@@ -21,8 +24,10 @@
             <td>{{ author.id }}</td>
             <td>{{ author.name }} {% if author.patronymic %}{{ author.patronymic }}{% endif %} {{ author.surname }}</td>
             <td>
+                <a href="{% url 'update_author' author.id %}" class="btn btn-secondary">Edit</a>
+                
                 {% if not author.books.exists %}
-                    <a href="{% url 'delete_author' author.id %}" class="delete-btn">Delete</a>
+                    <a href="{% url 'delete_author' author.id %}" class="btn btn-danger">Delete</a>
                 {% else %}
                     <em>Has books</em>
                 {% endif %}

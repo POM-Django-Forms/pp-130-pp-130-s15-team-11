@@ -5,22 +5,28 @@
 {% block content %}
 <h2>Books</h2>
 
-<a href="{% url 'user_books' user_id=request.user.id %}">📚 Books Provided by User</a>
+<div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+    <a href="{% url 'user_books' user_id=request.user.id %}" class="btn btn-primary">📚 Books by User</a>
+    <a href="{% url 'create_book' %}" class="btn btn-primary">➕ Add New Book</a>
+    <a href="{% url 'profile' request.user.id %}" class="btn btn-primary">👤 My Profile</a>
+</div>
 
-<a href="{% url 'create_book' %}">➕ Add New Book</a>
-
-<form method="get" style="margin-top: 10px;">
-    <input type="text" name="q" value="{{ query }}" placeholder="Search by book name" />
-    <select name="author">
+<form method="get" class="mb-3" style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search by book name" class="form-control" style="max-width: 200px;" />
+    
+    <select name="author" class="form-select" style="max-width: 200px;">
         <option value="">All authors</option>
         {% for author in authors %}
-        <option value="{{ author.id }}" {% if author.id|stringformat:"s" == author_id %}selected{% endif %}>{{ author.name }} {{ author.surname }}</option>
+        <option value="{{ author.id }}" {% if author.id|stringformat:"s" == author_id %}selected{% endif %}>
+            {{ author.name }} {{ author.surname }}
+        </option>
         {% endfor %}
     </select>
-    <button type="submit">Search</button>
+    
+    <button type="submit" class="btn btn-secondary">Search</button>
 </form>
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
@@ -37,9 +43,11 @@
         <tr>
             <td>{{ book.id }}</td>
             <td>
-            {% if book.image %}
-                <img src="{{ book.image.url }}" alt="{{ book.name }}" style="max-height: 60px;" />
-            {% endif %}
+                {% if book.image %}
+                    <img src="{{ book.image.url }}" alt="{{ book.name }}" style="max-height: 60px;" />
+                {% else %}
+                    <span class="text-muted">No image</span>
+                {% endif %}
             </td>
             <td><a href="{% url 'librarian_book_detail' book.id %}">{{ book.name }}</a></td>
             <td>{{ book.description }}</td>
@@ -48,16 +56,16 @@
                 {% for author in book.authors.all %}
                     {{ author.name }} {{ author.surname }}{% if not forloop.last %}, {% endif %}
                 {% empty %}
-                    No authors
+                    <span class="text-muted">No authors</span>
                 {% endfor %}
             </td>
-            <td>
-                <a href="{% url 'update_book' book.id %}">Edit</a> |
-                <a href="{% url 'delete_book' book.id %}">Delete</a>
+            <td style="white-space: nowrap;">
+                <a href="{% url 'update_book' book.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                <a href="{% url 'delete_book' book.id %}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">No books found.</td></tr>
+        <tr><td colspan="7">No books found.</td></tr>
         {% endfor %}
     </tbody>
 </table>
