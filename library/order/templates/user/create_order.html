@@ -11,13 +11,7 @@
 
 <form method="post">
     {% csrf_token %}
-    <label for="book">Select Book:</label>
-    <select name="book" id="book">
-        {% for book in books %}
-            <option value="{{ book.id }}">{{ book.name }} (Available: {{ book.count }})</option>
-        {% endfor %}
-    </select>
-    <br><br>
+    {{ form.as_p }}
     <button type="submit">Create Order</button>
 </form>
 {% endblock %}

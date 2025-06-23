@@ -2,50 +2,48 @@ import time
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
+from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
 
 User = get_user_model()
 
 def login_view(request):
+    error = None
     if request.method == 'POST':
         if 'guest' in request.POST:
             return redirect('guest')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        user = authenticate(request, email=email, password=password)
-
-        if user:
-            login(request, user)
-            if user.role == 1:
-                return redirect('profile', user_id=user.id)
-            elif user.role == 2:
-                return redirect('guest')
+        form = UserLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, email=email, password=password)
+            if user:
+                login(request, user)
+                if user.role == 1:
+                    return redirect('profile', user_id=user.id)
+                elif user.role == 2:
+                    return redirect('guest')
+                else:
+                    return redirect('login')
             else:
-                return redirect('login') 
-        else:
-            return render(request, 'authentication/login.html', {'error': 'Wrong data!'})
-    return render(request, 'authentication/login.html')
+                error = 'Wrong data!'
+    else:
+        form = UserLoginForm()
+    return render(request, 'authentication/login.html', {'form': form, 'error': error})
 
 
 def register_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        middle_name = request.POST.get('middle_name')
-
-        user = User.objects.create_user(
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            middle_name=middle_name,
-            role=1, 
-            is_active=True
-        )
-        
-        return redirect('login')
-    return render(request, 'authentication/register.html')
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.role = 1
+            user.is_active = True
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('login')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'authentication/register.html', {'form': form})
 
 
 def librarians_view(request):
@@ -83,13 +81,22 @@ def guest_view(request):
 def profile_view(request, user_id):
     if not request.user.is_authenticated or request.user.role != 1:
         return redirect('guest')
-
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return redirect('guest')
-
-    return render(request, 'authentication/profile.html', {'user': user})
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            profile = form.save(commit=False)
+            password = form.cleaned_data.get('password')
+            if password:
+                profile.set_password(password)
+            profile.save()
+            return redirect('profile', user_id=user.id)
+    else:
+        form = UserProfileForm(instance=user)
+    return render(request, 'authentication/profile.html', {'form': form, 'user': user})
 
 
 def logout_view(request):

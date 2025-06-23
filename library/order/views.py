@@ -4,6 +4,7 @@ from book.models import Book
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from datetime import timedelta
+from .forms import OrderForm
 
 def is_librarian(user):
     return user.is_authenticated and user.role == 1
@@ -21,26 +22,24 @@ def my_orders_view(request):
 
 @login_required
 def create_order_view(request):
-    books = Book.objects.all()
     error = None
-
     if request.method == 'POST':
-        book_id = request.POST.get('book')
-        try:
-            book = Book.objects.get(id=book_id)
-        except Book.DoesNotExist:
-            error = "Book not found."
-        else:
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            book = order.book
             if book.count < 1:
                 error = "Book is not available."
             else:
-                plated_end_at = timezone.now() + timedelta(weeks=2)
-                order = Order.create(user=request.user, book=book, plated_end_at=plated_end_at)
+                order.user = request.user
+                order.plated_end_at = timezone.now() + timedelta(weeks=2)
+                order.save()
                 book.count -= 1
                 book.save()
                 return redirect('my_orders')
-
-    return render(request, 'user/create_order.html', {'books': books, 'error': error})
+    else:
+        form = OrderForm()
+    return render(request, 'user/create_order.html', {'form': form, 'error': error})
 
 @login_required
 @user_passes_test(is_librarian)

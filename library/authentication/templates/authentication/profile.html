@@ -7,6 +7,14 @@
     {% if user.role == 1 %}a librarian{% elif user.role == 2 %}a guest{% else %}a user{% endif %}.
   </h2>
 
+  {% if form %}
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Save Changes</button>
+    </form>
+  {% endif %}
+
   <div class="nav-buttons">
     {% if user.role == 1 %}
       <a href="{% url 'author_list' %}"><button>Authors</button></a>

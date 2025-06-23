@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Author
 from .forms import AuthorForm
@@ -27,10 +27,7 @@ def create_author_view(request):
 @login_required
 @user_passes_test(is_librarian)
 def update_author_view(request, author_id):
-    author = Author.get_by_id(author_id)
-    if not author:
-        return redirect('author_list')
-
+    author = get_object_or_404(Author, id=author_id)
     if request.method == 'POST':
         form = AuthorForm(request.POST, instance=author)
         if form.is_valid():
@@ -38,8 +35,7 @@ def update_author_view(request, author_id):
             return redirect('author_list')
     else:
         form = AuthorForm(instance=author)
-
-    return render(request, 'edit_author.html', {'form': form, 'author': author})
+    return render(request, 'update_author.html', {'form': form, 'author': author})
 
 @login_required
 @user_passes_test(is_librarian)
